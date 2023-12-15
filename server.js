@@ -24,7 +24,8 @@ var Network = Enum(
     "JoinRoom",
     "StartGame",
     "Roll",
-    "Mouse"
+    "Mouse",
+    "SaveDice",
 )
 
 var Dice = Enum(
@@ -163,7 +164,23 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
-
+        case Network.SaveDice:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.SaveDice,
+                            number: _json['number'],
+                            saved: _json['saved']
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
         case Network.PlayerConnect:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
@@ -193,6 +210,7 @@ server.on("message", function (msg, rinfo) {
                                 command: Network.Mouse,
                                 x: _json['x'],
                                 y: _json['y'],
+                                sprite: _json['sprite'],
                                 socket: rinfo.port
                             }, {
                                 address: rooms[i]['players'][j]['address'],
