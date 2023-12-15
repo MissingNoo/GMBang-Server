@@ -22,7 +22,9 @@ var Network = Enum(
     "Disconnect",
     "CreateRoom",
     "JoinRoom",
-    "StartGame"
+    "StartGame",
+    "Roll",
+    "Mouse"
 )
 
 var Dice = Enum(
@@ -89,11 +91,12 @@ server.on("message", function (msg, rinfo) {
             var password = _json['password'];
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
-                if ((rooms[i]['name'] == _room || rooms[i]['password'] == password) && rooms[i]['totalplayers'] < 2) {
+                if ((rooms[i]['name'] == _room || rooms[i]['password'] == password) && rooms[i]['totalplayers'] < 8) {
                     rooms[i]['players'][rooms[i]['totalplayers']] = {
                         address: rinfo['address'],
                         port: rinfo['port'],
                         username: _username,
+                        rolls: 3,
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -141,6 +144,25 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
+        
+        case Network.Roll:
+            var dices = [between(0, 5), between(0, 5), between(0, 5), between(0, 5), between(0, 5)];
+            var dicejson = JSON.stringify(dices);
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.Roll,
+                            dicejson: dicejson,
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
 
         case Network.PlayerConnect:
             var _room = _json['roomname'];
@@ -161,20 +183,17 @@ server.on("message", function (msg, rinfo) {
             }
             break;
 
-        case Network.Move:
+        case Network.Mouse:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         if (rinfo['port'] != rooms[i]['players'][j]['port']) {
                             sendMessage({
-                                command: Network.PlayerMoved,
+                                command: Network.Mouse,
                                 x: _json['x'],
                                 y: _json['y'],
-                                sprite: _json['sprite'],
-                                spd : _json['spd'],
-                                image_xscale: _json['image_xscale'],
-                                socket: rooms[i]['players'][j]['port']
+                                socket: rinfo.port
                             }, {
                                 address: rooms[i]['players'][j]['address'],
                                 port: rooms[i]['players'][j]['port']
