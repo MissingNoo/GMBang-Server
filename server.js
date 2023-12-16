@@ -26,7 +26,9 @@ var Network = Enum(
     "Roll",
     "Mouse",
     "SaveDice",
-    "NextTurn"
+    "NextTurn",
+    "AddArrow",
+	"UpdatePlayers"
 )
 
 var Dice = Enum(
@@ -100,6 +102,9 @@ server.on("message", function (msg, rinfo) {
                         port: rinfo['port'],
                         username: _username,
                         rolls: 3,
+                        arrows: 0,
+                        life: 0,
+                        bombs: 0
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -150,15 +155,41 @@ server.on("message", function (msg, rinfo) {
             break;
         
         case Network.Roll:
+            var _saved = JSON.parse(_json['saved']);
             var dices = [between(0, 5), between(0, 5), between(0, 5), between(0, 5), between(0, 5)];
             var dicejson = JSON.stringify(dices);
+            var _bombs = 0;
+            for (let i = 0; i < dices.length; i++) {
+                var _isSaved = false;
+                for (let j = 0; j < _saved.length; j++) {
+                    if (_saved[j] == i) {
+                        _isSaved = true;
+                    }
+                }
+                if (dices[i] == Dice.Bomb && !_isSaved) {
+                    _bombs += 1;
+                }
+            }
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rooms[i]['players'][j]['port'] == rinfo.port) {
+                            rooms[i]['players'][j]['rolls'] -= 1;
+                            rooms[i]['players'][j]['bombs'] += _bombs;
+                        }
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         sendMessage({
                             command: Network.Roll,
                             dicejson: dicejson,
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
@@ -188,6 +219,12 @@ server.on("message", function (msg, rinfo) {
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rooms[i]['players'][j]['port'] == rinfo.port) {
+                            rooms[i]['players'][j]['rolls'] = 3;
+                            rooms[i]['players'][j]['bombs'] = 0;
+                        }
+                    }
                     var _turn = rooms[i]['currentTurn'] + 1;
                     if (_turn == rooms[i]['players'].length) {
                         _turn = 0;
@@ -205,6 +242,27 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
+        case Network.AddArrow:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rooms[i]['players'][j]['port'] == rinfo['port']) {
+                            rooms[i]['players'][j]['arrows'] += 1;
+                        }
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;    
         case Network.PlayerConnect:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
