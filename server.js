@@ -26,6 +26,7 @@ var Network = Enum(
     "Roll",
     "Mouse",
     "SaveDice",
+    "NextTurn"
 )
 
 var Dice = Enum(
@@ -75,7 +76,8 @@ server.on("message", function (msg, rinfo) {
                 name : room_number,
                 password : password,
                 totalplayers: 0,
-                players: []
+                players: [],
+                currentTurn : 0
             };
             sendMessage({
                 command: Network.CreateRoom,
@@ -136,7 +138,8 @@ server.on("message", function (msg, rinfo) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         sendMessage({
-                            command: Network.StartGame
+                            command: Network.StartGame,
+                            socket: rooms[i]['players'][j]['port']
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
@@ -173,6 +176,27 @@ server.on("message", function (msg, rinfo) {
                             command: Network.SaveDice,
                             number: _json['number'],
                             saved: _json['saved']
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
+        case Network.NextTurn:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    var _turn = rooms[i]['currentTurn'] + 1;
+                    if (_turn == rooms[i]['players'].length) {
+                        _turn = 0;
+                    }
+                    rooms[i]['currentTurn'] = _turn;
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.NextTurn,
+                            turn : _turn
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
