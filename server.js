@@ -40,6 +40,49 @@ var Dice = Enum(
     "Gatling",
 )
 
+var Roles = Enum(
+    "Sheriff",
+	"Deputy",
+	"Outlaw",
+	"Renegade"
+)
+
+var Characters = Enum(
+    "BartCassidy",
+    "BlackJack",
+    "CalamityJanet",
+    "ElGringo",
+    "JesseJones",
+    "Jourdonnais",
+    "KitCarlson",
+    "LuckyDuke",
+    "PaulRegret",
+    "PedroRamirez",
+    "RoseDoolan",
+    "SidKetchum",
+    "SlabtheKiller",
+    "SuzyLafayette",
+    "VultureSam",
+    "WillytheKid"
+)
+const characterInfo = [];
+characterInfo[Characters.BartCassidy] = {life : 8, skip : false};
+characterInfo[Characters.BlackJack] = {life : 8, skip : false};
+characterInfo[Characters.CalamityJanet] = {life : 8, skip : false};
+characterInfo[Characters.ElGringo] = {life : 7, skip : false};
+characterInfo[Characters.JesseJones] = {life : 9, skip : false};
+characterInfo[Characters.Jourdonnais] = {life : 7, skip : false};
+characterInfo[Characters.KitCarlson] = {life : 7, skip : false};
+characterInfo[Characters.LuckyDuke] = {life : 8, skip : false};
+characterInfo[Characters.PaulRegret] = {life : 9, skip : false};
+characterInfo[Characters.PedroRamirez] = {life : 8, skip : false};
+characterInfo[Characters.RoseDoolan] = {life : 9, skip : false};
+characterInfo[Characters.SidKetchum] = {life : 8, skip : false};
+characterInfo[Characters.SlabtheKiller] = {life : 8, skip : false};
+characterInfo[Characters.SuzyLafayette] = {life : 8, skip : false};
+characterInfo[Characters.VultureSam] = {life : 9, skip : false};
+characterInfo[Characters.WillytheKid] = {life : 8, skip : false};
+
 function between(min, max) {  
     return Math.floor(
       Math.random() * (max - min) + min
@@ -104,7 +147,8 @@ server.on("message", function (msg, rinfo) {
                         rolls: 3,
                         arrows: 0,
                         life: 0,
-                        bombs: 0
+                        bombs: 0,
+                        character: -1
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -141,10 +185,31 @@ server.on("message", function (msg, rinfo) {
             console.log("Starting game on room:" + _room);
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
+                    const roomchars = [].concat(characterInfo);
+                    console.log(roomchars);
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        var _char = between(0, roomchars.length);
+                        do {
+                            _char += 1;
+                            if (_char > roomchars.length) {
+                                _char = 0;
+                            }
+                        } while (roomchars[_char]['skip']);
+                        rooms[i]['players'][j]['character'] = _char;
+                        rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
+                        roomchars[_char]['skip'] = true;
                         sendMessage({
                             command: Network.StartGame,
                             socket: rooms[i]['players'][j]['port']
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
@@ -302,67 +367,6 @@ server.on("message", function (msg, rinfo) {
                     }
                 }
             }
-            break;
-
-        case Network.SpawnUpgrade:
-            sendMessageRoom({
-                command: Network.SpawnUpgrade,
-                socket: _json['socket'],
-                x: _json['x'],
-                y: _json['y'],
-                sprite_index: _json['sprite_index'],
-                direction: _json['direction'],
-                image_angle: _json['image_angle'],
-                //speed : _json['speed'],
-                //sendvars : _json['sendvars'],
-                //upg : _json['upg'],
-                upgID: _json['upgID'],
-                //haveafterimage: _json['haveafterimage'],
-                extraInfo : _json['extraInfo']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.Spawn:
-            sendMessageRoom({
-                command: Network.Spawn,
-                x: _json['x'],
-                y: _json['y'],
-                sendvars: _json['sendvars']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.Destroy:
-            sendMessageRoom({
-                command: Network.Destroy,
-                enemyID: _json['enemyID'],
-                //drop : _json['drop']
-                owner: rinfo['port']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.UpdateUpgrade:
-            sendMessageRoom({
-                command: Network.UpdateUpgrade,
-                upgID: _json['upgID'],
-                socket: _json['socket'],
-                x: _json['x'],
-                y: _json['y'],
-                sprite_index: _json['sprite_index'],
-                direction: _json['direction'],
-                image_angle: _json['image_angle'],
-                image_alpha: _json['image_alpha'],
-                image_xscale: _json['image_xscale'],
-                image_yscale: _json['image_yscale'],
-                afterimg: _json['afterimg'],
-                extraInfo: _json['extrainfo']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.DestroyUpgrade:
-            sendMessageRoom({
-                command: Network.DestroyUpgrade,
-                upgID: _json['upgID'],
-            }, rinfo['port'], _json['roomname']);
             break;
 
         case Network.Disconnect:
