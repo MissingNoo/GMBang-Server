@@ -28,7 +28,8 @@ var Network = Enum(
     "SaveDice",
     "NextTurn",
     "AddArrow",
-	"UpdatePlayers"
+	"UpdatePlayers",
+    "Damage"
 )
 
 var Dice = Enum(
@@ -185,15 +186,19 @@ server.on("message", function (msg, rinfo) {
             console.log("Starting game on room:" + _room);
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
-                    const roomchars = [].concat(characterInfo);
-                    console.log(roomchars);
+                    const roomchars = [...characterInfo];
+                    for (let k = 0; k < roomchars.length; k++) {
+                        roomchars[k]['skip'] = false;
+                    }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        
                         var _char = between(0, roomchars.length);
                         do {
                             _char += 1;
-                            if (_char > roomchars.length) {
+                            if (_char >= roomchars.length) {
                                 _char = 0;
                             }
+                            console.log(roomchars[_char]['skip']);
                         } while (roomchars[_char]['skip']);
                         rooms[i]['players'][j]['character'] = _char;
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
@@ -263,6 +268,29 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
+        case Network.Damage:
+            var _room = _json['roomname'];
+            console.log(_json);
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
+                        if (_json['port'] == rooms[i]['players'][j]['port']) {
+                            rooms[i]['players'][j]['life'] -= 1;
+                        }
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
         case Network.SaveDice:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
@@ -291,6 +319,9 @@ server.on("message", function (msg, rinfo) {
                         }
                     }
                     var _turn = rooms[i]['currentTurn'] + 1;
+                    if (rooms[i]['player'][_turn]['life'] <= 0) {
+                        _turn+=1;
+                    }
                     if (_turn == rooms[i]['players'].length) {
                         _turn = 0;
                     }
