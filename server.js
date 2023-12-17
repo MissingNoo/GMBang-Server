@@ -387,10 +387,6 @@ server.on("message", function (msg, rinfo) {
             console.log("User " + String(_json['username']) + " connected, " + String(users) + "/" + String(maxusers) + " total users online");
             break;
 
-        case Network.UpdateRoom:
-
-            break;
-
         case Network.KeepAlive:
             //console.log("KeepAlive from " + rinfo['port']);
             for (let index = 0; index < usertime.length; index++) {
@@ -401,60 +397,6 @@ server.on("message", function (msg, rinfo) {
 
             }
             break;
-
-        case Network.UpdateOptions:
-            sendMessageRoom({
-                command: Network.UpdateOptions,
-                option: _json['option'],
-                value: _json['value'],
-                roomname: _json['roomname']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.ShareXP:
-            sendMessageRoom({
-                command: Network.ShareXP,
-                xp: _json['xp'],
-                roomname: _json['roomname']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.ChatMessage:
-            sendMessageRoom({
-                command: Network.ChatMessage,
-                text: _json['text'],
-                username: _json['username']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.SpawnAnvil:
-            sendMessageRoom({
-                command: Network.SpawnAnvil,
-                owner: rinfo['port'],
-                x: _json['x'],
-                y: _json['y'],
-                anvilid: _json['anvilid'],
-                maxuses: _json['maxuses']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.UpdateAnvil:
-            sendMessageRoom({
-                command: Network.UpdateAnvil,
-                anvilid: _json['anvilid'],
-                maxuses: _json['maxuses']
-            }, rinfo['port'], _json['roomname']);
-            break;
-
-        case Network.AddItem:
-            sendMessageRoom({
-                command: Network.AddItem,
-                type: _json['type'],
-                id: _json['id'],
-                level: _json['level'],
-                pos: _json['pos']
-            }, rinfo['port'], _json['roomname']);
-            break;       
 
         case Network.InfectMob:
             sendMessageRoom({
