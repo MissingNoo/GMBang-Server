@@ -371,10 +371,20 @@ server.on("message", function (msg, rinfo) {
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
-                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        if (rooms[i]['players'][j]['port'] == rinfo['port']) {
-                            rooms[i]['players'][j]['arrows'] += 1;
+                    if (rooms[i]['arrows'] > 0) {
+                        for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                            if (rooms[i]['players'][j]['port'] == rinfo['port']) {
+                                rooms[i]['arrows'] -= 1;
+                                rooms[i]['players'][j]['arrows'] += 1;
+                            }
                         }
+                    }
+                    if (rooms[i]['arrows'] == 0) {
+                        rooms[i]['arrows'] = 9;
+                        for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                            rooms[i]['players'][j]['life'] -= rooms[i]['players'][j]['arrows'];
+                            rooms[i]['players'][j]['arrows'] = 0;
+                        }           
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         sendMessage({
