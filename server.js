@@ -29,7 +29,8 @@ var Network = Enum(
     "NextTurn",
     "AddArrow",
 	"UpdatePlayers",
-    "Damage"
+    "Damage",
+    "Heal"
 )
 
 var Dice = Enum(
@@ -148,6 +149,7 @@ server.on("message", function (msg, rinfo) {
                         rolls: 3,
                         arrows: 0,
                         life: 0,
+                        maxlife: 0,
                         bombs: 0,
                         character: -1
                     };
@@ -202,6 +204,7 @@ server.on("message", function (msg, rinfo) {
                         } while (roomchars[_char]['skip']);
                         rooms[i]['players'][j]['character'] = _char;
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
+                        rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
                         roomchars[_char]['skip'] = true;
                         sendMessage({
                             command: Network.StartGame,
@@ -226,7 +229,7 @@ server.on("message", function (msg, rinfo) {
         
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            var dices = [between(0, 5), between(0, 5), between(0, 5), between(0, 5), between(0, 5)];
+            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
             var dicejson = JSON.stringify(dices);
             var _bombs = 0;
             for (let i = 0; i < dices.length; i++) {
@@ -291,6 +294,32 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
+        case Network.Heal:
+            var _room = _json['roomname'];
+            console.log(_json);
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
+                        if (_json['port'] == rooms[i]['players'][j]['port']) {
+                            if (rooms[i]['players'][j]['life'] < rooms[i]['players'][j]['maxlife']) {
+                                rooms[i]['players'][j]['life'] += 1;
+                            }
+                            
+                        }
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
         case Network.SaveDice:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
@@ -319,11 +348,11 @@ server.on("message", function (msg, rinfo) {
                         }
                     }
                     var _turn = rooms[i]['currentTurn'] + 1;
-                    if (rooms[i]['player'][_turn]['life'] <= 0) {
-                        _turn+=1;
-                    }
                     if (_turn == rooms[i]['players'].length) {
                         _turn = 0;
+                    }
+                    while (rooms[i]['players'][_turn]['life'] <= 0) {
+                        _turn+=1;
                     }
                     rooms[i]['currentTurn'] = _turn;
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
