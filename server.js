@@ -86,10 +86,28 @@ characterInfo[Characters.SuzyLafayette] = {life : 8, skip : false};
 characterInfo[Characters.VultureSam] = {life : 9, skip : false};
 characterInfo[Characters.WillytheKid] = {life : 8, skip : false};
 
-function between(min, max) {  
+function between(min, max) {
     return Math.floor(
-      Math.random() * (max - min) + min
+        Math.random() * (max - min) + min
     )
+}
+
+function shuffle(array) {
+    let currentIndex = array.length,  randomIndex;
+  
+    // While there remain elements to shuffle.
+    while (currentIndex > 0) {
+  
+      // Pick a remaining element.
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+  
+    return array;
   }
 
 function sendMessage(data, rinfo) {
@@ -153,7 +171,8 @@ server.on("message", function (msg, rinfo) {
                         life: 0,
                         maxlife: 0,
                         bombs: 0,
-                        character: -1
+                        character: -1,
+                        job : -1
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -191,11 +210,32 @@ server.on("message", function (msg, rinfo) {
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     const roomchars = [...characterInfo];
+                    var roomjobs = [];
+                    switch (rooms[i]['players'].length) {
+                        case 4:
+                            roomjobs = [Roles.Sheriff, Roles.Renegade, Roles.Outlaw, Roles.Outlaw];
+                            break;
+                        case 5:
+                            roomjobs = [Roles.Sheriff, Roles.Renegade, Roles.Outlaw, Roles.Outlaw, Roles.Deputy];
+                            break;
+                        case 6:
+                            roomjobs = [Roles.Sheriff, Roles.Renegade, Roles.Outlaw, Roles.Outlaw, Roles.Outlaw, Roles.Deputy];
+                            break;
+                        case 7:
+                            roomjobs = [Roles.Sheriff, Roles.Renegade, Roles.Outlaw, Roles.Outlaw, Roles.Outlaw, Roles.Deputy, Roles.Deputy];
+                            break;
+                        case 8:
+                            roomjobs = [Roles.Sheriff, Roles.Renegade, Roles.Renegade, Roles.Outlaw, Roles.Outlaw, Roles.Outlaw, Roles.Deputy, Roles.Deputy];
+                            break;
+                    }
                     for (let k = 0; k < roomchars.length; k++) {
                         roomchars[k]['skip'] = false;
                     }
+                    shuffle(roomjobs);
+                    shuffle(rooms[i]['players']);
+                    console.log("jobs:" + String(roomjobs));
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        
+                        var _job = roomjobs.shift();
                         var _char = between(0, roomchars.length);
                         do {
                             _char += 1;
@@ -204,6 +244,7 @@ server.on("message", function (msg, rinfo) {
                             }
                             //console.log(roomchars[_char]['skip']);
                         } while (roomchars[_char]['skip']);
+                        rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
@@ -231,8 +272,8 @@ server.on("message", function (msg, rinfo) {
         
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            var dices = [3,3,3,3,3];
+            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
+            //var dices = [3,3,3,3,3];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
