@@ -148,7 +148,7 @@ server.on("message", function (msg, rinfo) {
                         address: rinfo['address'],
                         port: rinfo['port'],
                         username: _username,
-                        rolls: 1,
+                        rolls: 3,
                         arrows: 0,
                         life: 0,
                         maxlife: 0,
@@ -383,11 +383,14 @@ server.on("message", function (msg, rinfo) {
                         }
                     }
                     var _turn = rooms[i]['currentTurn'] + 1;
-                    if (_turn == rooms[i]['players'].length) {
+                    if (_turn >= rooms[i]['players'].length) {
                         _turn = 0;
                     }
                     while (rooms[i]['players'][_turn]['life'] <= 0) {
                         _turn+=1;
+                        if (_turn >= rooms[i]['players'].length) {
+                            _turn = 0;
+                        }
                     }
                     rooms[i]['currentTurn'] = _turn;
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
