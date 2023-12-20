@@ -256,7 +256,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.ElGringo;
+                            rooms[i]['players'][j]['character'] = Characters.JesseJones;
                         }
                         if (j == 0) {
                             //rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
@@ -311,7 +311,7 @@ server.on("message", function (msg, rinfo) {
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
             //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            var dices = [Dice.Bomb, Dice.Bomb, Dice.Hit1, Dice.Hit1, Dice.Hit1];
+            var dices = [Dice.Beer, Dice.Beer, Dice.Hit1, Dice.Hit1, Dice.Hit1];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
@@ -433,7 +433,11 @@ server.on("message", function (msg, rinfo) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
                             if (rooms[i]['players'][j]['life'] > 0 && rooms[i]['players'][j]['life'] < rooms[i]['players'][j]['maxlife']) {
-                                rooms[i]['players'][j]['life'] += 1;
+                                var _healAmount = 1;
+                                if(rooms[i]['players'][j]['character'] == Characters.JesseJones && _json['port'] == rinfo['port'] && rooms[i]['players'][j]['life'] <= 4){
+                                    _healAmount = 2;
+                                }
+                                rooms[i]['players'][j]['life'] += _healAmount;
                             }
                             
                         }
