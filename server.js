@@ -51,6 +51,12 @@ var Roles = Enum(
 	"Renegade"
 )
 
+var DamageType = Enum(
+    "Normal",
+    "Indian",
+    "Dynamite"
+)
+
 var Characters = Enum(
     "BartCassidy",
     "BlackJack",
@@ -173,7 +179,8 @@ server.on("message", function (msg, rinfo) {
                         maxlife: 0,
                         bombs: 0,
                         character: -1,
-                        job : -1
+                        job : -1,
+                        lastdamage: -1
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -328,6 +335,10 @@ server.on("message", function (msg, rinfo) {
                         if (rooms[i]['players'][j]['port'] == rinfo.port) {
                             rooms[i]['players'][j]['rolls'] -= 1;
                             rooms[i]['players'][j]['bombs'] += _bombs;
+                            if (rooms[i]['players'][j]['bombs'] >= 3) {
+                                rooms[i]['players'][j]['life'] -= 1;
+                                rooms[i]['players'][j]['lastdamage'] = DamageType.Dynamite;
+                            }
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
@@ -358,6 +369,7 @@ server.on("message", function (msg, rinfo) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
                             rooms[i]['players'][j]['life'] -= 1;
+                            rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
@@ -488,6 +500,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['arrows'] = 9;
                         for (var j = 0; j < rooms[i]['players'].length; ++j) {
                             rooms[i]['players'][j]['life'] -= rooms[i]['players'][j]['arrows'];
+                            rooms[i]['players'][j]['lastdamage'] = DamageType.Indian;
                             rooms[i]['players'][j]['arrows'] = 0;
                         }           
                     }
