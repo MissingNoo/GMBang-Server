@@ -394,6 +394,7 @@ server.on("message", function (msg, rinfo) {
                         }
                         else{
                             rooms[i]['players'][j]['life'] -= 1;
+                            rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
