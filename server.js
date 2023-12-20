@@ -256,7 +256,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.JesseJones;
+                            rooms[i]['players'][j]['character'] = Characters.LuckyDuke;
                         }
                         if (j == 0) {
                             //rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
@@ -310,8 +310,8 @@ server.on("message", function (msg, rinfo) {
             break;
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            var dices = [Dice.Beer, Dice.Beer, Dice.Hit1, Dice.Hit1, Dice.Hit1];
+            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
+            //var dices = [Dice.Gatling, Dice.Gatling, Dice.Arrow, Dice.Gatling, Dice.Bomb];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
@@ -476,10 +476,14 @@ server.on("message", function (msg, rinfo) {
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        if (rooms[i]['players'][j]['port'] == rinfo.port) {
-                            rooms[i]['players'][j]['rolls'] = 3;
-                            rooms[i]['players'][j]['bombs'] = 0;
+                        //if (rooms[i]['players'][j]['port'] == rinfo.port) {
+                        var _rolls = 3;
+                        if(rooms[i]['players'][j]['character'] == Characters.LuckyDuke){
+                            _rolls = 4;
                         }
+                        rooms[i]['players'][j]['rolls'] = _rolls;
+                        rooms[i]['players'][j]['bombs'] = 0;
+                        //}
                     }
                     var _turn = rooms[i]['currentTurn'] + 1;
                     if (_turn >= rooms[i]['players'].length) {
@@ -493,6 +497,13 @@ server.on("message", function (msg, rinfo) {
                     }
                     rooms[i]['currentTurn'] = _turn;
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players']),
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
                         sendMessage({
                             command: Network.NextTurn,
                             turn : _turn
@@ -552,16 +563,22 @@ server.on("message", function (msg, rinfo) {
                 if (rooms[i]['name'] == _room) {
                     if (rooms[i]['arrows'] > 0) {
                         for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                            if (rooms[i]['players'][j]['port'] == rinfo['port']) {
-                                rooms[i]['arrows'] -= 1;
-                                rooms[i]['players'][j]['arrows'] += 1;
+                            if (rooms[i]['players'][j]['port'] == _json['port']) {
+                                rooms[i]['arrows'] -= _json['amount'];
+                                if(rooms[i]['arrows'] < 0){rooms[i]['arrows'] = 0}
+                                rooms[i]['players'][j]['arrows'] += _json['amount'];
+                                if(rooms[i]['players'][j]['arrows'] < 0){rooms[i]['players'][j]['arrows'] = 0}
                             }
                         }
                     }
                     if (rooms[i]['arrows'] == 0) {
                         rooms[i]['arrows'] = 9;
                         for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                            rooms[i]['players'][j]['life'] -= rooms[i]['players'][j]['arrows'];
+                            var _arrowDamage = rooms[i]['players'][j]['arrows'];
+                            if(rooms[i]['players'][j]['character'] == Characters.Jourdonnais){
+                                _arrowDamage = 1;
+                            }
+                            rooms[i]['players'][j]['life'] -= _arrowDamage;
                             rooms[i]['players'][j]['lastdamage'] = DamageType.Indian;
                             rooms[i]['players'][j]['arrows'] = 0;
                         }           
@@ -753,7 +770,16 @@ keypress(process.stdin);
 // listen for the "keypress" event
 process.stdin.on('keypress', function (ch, key) {
     if (key && key.name == 'u') {
-        console.log(usertime);
+        for (var i = 0; i < rooms.length; ++i) {
+            console.log(rooms[i]['players']);
+        }
+    }
+    if (key && key.name == 'j'){
+        for (var i = 0; i < rooms.length; ++i) {
+            for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                rooms[i]['players'][j]['arrows'] = 0;
+            }
+        }
     }
     //console.log('got "keypress"', key);
     if (key && key.ctrl && key.name == 'c') {
