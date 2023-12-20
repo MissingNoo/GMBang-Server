@@ -256,10 +256,10 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.LuckyDuke;
+                            rooms[i]['players'][j]['character'] = Characters.PedroRamirez;
                         }
                         if (j == 0) {
-                            //rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
+                            rooms[i]['players'][j]['character'] = Characters.BartCassidy;
                         }
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
