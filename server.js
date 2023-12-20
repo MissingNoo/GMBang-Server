@@ -256,10 +256,10 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.BlackJack;
+                            rooms[i]['players'][j]['character'] = Characters.ElGringo;
                         }
                         if (j == 0) {
-                            rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
+                            //rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
                         }
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
@@ -370,17 +370,28 @@ server.on("message", function (msg, rinfo) {
             //console.log(_json);
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
+                    var _myself = -1;
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rinfo['port'] == rooms[i]['players'][j]['port']) {
+                            _myself = i;
+                        }
+                    }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
                             rooms[i]['players'][j]['life'] -= 1;
+                            if(rooms[i]['players'][j]['character'] == Characters.ElGringo){
+                                rooms[i]['players'][_myself]['arrows'] += 1;
+                                rooms[i]['arrows'] -= 1;
+                            }
                             rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         sendMessage({
                             command: Network.UpdatePlayers,
-                            players : JSON.stringify(rooms[i]['players'])
+                            players : JSON.stringify(rooms[i]['players']),
+                            arrows : rooms[i]['arrows']
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
