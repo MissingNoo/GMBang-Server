@@ -33,7 +33,8 @@ var Network = Enum(
     "Heal",
     "Gatling",
     "Waiting",
-    "ChangeBomb"
+    "ChangeBomb",
+    "ChangeDice"
 )
 
 var Dice = Enum(
@@ -256,6 +257,9 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
                             rooms[i]['players'][j]['character'] = Characters.BlackJack;
+                        }
+                        if (j == 0) {
+                            rooms[i]['players'][j]['character'] = Characters.CalamityJanet;
                         }
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
@@ -499,6 +503,25 @@ server.on("message", function (msg, rinfo) {
                         sendMessage({
                             command: Network.UpdatePlayers,
                             players : JSON.stringify(rooms[i]['players']),
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+                
+            }
+            break;
+        case Network.ChangeDice:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.ChangeDice,
+                            id : _json['id'], 
+                            face : _json['face']
+
                         }, {
                             address: rooms[i]['players'][j]['address'],
                             port: rooms[i]['players'][j]['port']
