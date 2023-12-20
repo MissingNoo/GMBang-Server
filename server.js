@@ -31,7 +31,8 @@ var Network = Enum(
 	"UpdatePlayers",
     "Damage",
     "Heal",
-    "Gatling"
+    "Gatling",
+    "Waiting"
 )
 
 var Dice = Enum(
@@ -233,7 +234,6 @@ server.on("message", function (msg, rinfo) {
                     }
                     shuffle(roomjobs);
                     shuffle(rooms[i]['players']);
-                    console.log("jobs:" + String(roomjobs));
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         var _job = roomjobs.shift();
                         var _char = between(0, roomchars.length);
@@ -246,6 +246,9 @@ server.on("message", function (msg, rinfo) {
                         } while (roomchars[_char]['skip']);
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
+                        if (j == 1) {
+                            rooms[i]['players'][j]['character'] = Characters.BartCassidy;
+                        }
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
                         roomchars[_char]['skip'] = true;
@@ -269,7 +272,30 @@ server.on("message", function (msg, rinfo) {
                 }
             }
             break;
-        
+        case Network.Waiting:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.Waiting,
+                            player: _json['player'],
+                            waiting : _json['waiting']
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players'])
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+            }
+            break;
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
             var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
