@@ -409,7 +409,9 @@ server.on("message", function (msg, rinfo) {
                             rooms[i]['players'][j]['arrows'] = 0;
                         }
                         else{
-                            rooms[i]['players'][j]['life'] -= 1;
+                            var _damage = 1;
+                            if(rooms[i]['players'][j]['character'] == Characters.PaulRegret){_damage = 0;}
+                            rooms[i]['players'][j]['life'] -= _damage;
                             rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
                         }
                     }
