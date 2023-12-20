@@ -764,7 +764,7 @@ server.bind(8888);
 console.log("Server Online!");
 timeout();
 
-var keypress = require('keypress');
+/* var keypress = require('keypress');
 
 // make `process.stdin` begin emitting "keypress" events
 keypress(process.stdin);
@@ -787,7 +787,7 @@ process.stdin.on('keypress', function (ch, key) {
     if (key && key.ctrl && key.name == 'c') {
         process.kill(process.pid, 'SIGHUP');
     }
-});
+}); */
 
-process.stdin.setRawMode(true);
-process.stdin.resume();
+//process.stdin.setRawMode(true);
+//process.stdin.resume();
