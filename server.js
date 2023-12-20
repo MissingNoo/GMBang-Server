@@ -32,7 +32,8 @@ var Network = Enum(
     "Damage",
     "Heal",
     "Gatling",
-    "Waiting"
+    "Waiting",
+    "ChangeBomb"
 )
 
 var Dice = Enum(
@@ -254,7 +255,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                         if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.BartCassidy;
+                            rooms[i]['players'][j]['character'] = Characters.BlackJack;
                         }
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
@@ -305,8 +306,8 @@ server.on("message", function (msg, rinfo) {
             break;
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            //var dices = [3,3,3,3,3];
+            //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
+            var dices = [Dice.Bomb, Dice.Bomb, Dice.Hit1, Dice.Hit1, Dice.Hit1];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
@@ -411,13 +412,12 @@ server.on("message", function (msg, rinfo) {
             break;
         case Network.Heal:
             var _room = _json['roomname'];
-            console.log(_json);
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
-                            if (rooms[i]['players'][j]['life'] < rooms[i]['players'][j]['maxlife']) {
+                            if (rooms[i]['players'][j]['life'] > 0 && rooms[i]['players'][j]['life'] < rooms[i]['players'][j]['maxlife']) {
                                 rooms[i]['players'][j]['life'] += 1;
                             }
                             
@@ -483,6 +483,29 @@ server.on("message", function (msg, rinfo) {
                         });
                     }
                 }
+            }
+            break;
+        case Network.ChangeBomb:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rooms[i]['players'][j]['port'] == rinfo['port'] && rooms[i]['players'][j]['character'] == Characters.BlackJack) {
+                            rooms[i]['players'][j]['bombs'] += _json['amount'];
+                            console.log("player " + String(rooms[i]['players'][j]['username']) + "bombs: " + String(rooms[i]['players'][j]['bombs']));
+                        }
+                    }
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        sendMessage({
+                            command: Network.UpdatePlayers,
+                            players : JSON.stringify(rooms[i]['players']),
+                        }, {
+                            address: rooms[i]['players'][j]['address'],
+                            port: rooms[i]['players'][j]['port']
+                        });
+                    }
+                }
+                
             }
             break;
         case Network.AddArrow:
