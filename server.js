@@ -34,7 +34,8 @@ var Network = Enum(
     "Gatling",
     "Waiting",
     "ChangeBomb",
-    "ChangeDice"
+    "ChangeDice",
+    "UsedSkill"
 )
 
 var Dice = Enum(
@@ -182,7 +183,8 @@ server.on("message", function (msg, rinfo) {
                         bombs: 0,
                         character: -1,
                         job : -1,
-                        lastdamage: -1
+                        lastdamage: -1,
+                        canUseSkill : false
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -255,10 +257,10 @@ server.on("message", function (msg, rinfo) {
                         } while (roomchars[_char]['skip']);
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
-                        /* if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.PedroRamirez;
+                         if (j == 1) {
+                            //rooms[i]['players'][j]['character'] = Characters.SidKetchum;
                         }
-                        if (j == 0) {
+                        /* if (j == 0) {
                             rooms[i]['players'][j]['character'] = Characters.BartCassidy;
                         } */
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
@@ -480,8 +482,15 @@ server.on("message", function (msg, rinfo) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         //if (rooms[i]['players'][j]['port'] == rinfo.port) {
                         var _rolls = 3;
-                        if(rooms[i]['players'][j]['character'] == Characters.LuckyDuke){
-                            _rolls = 4;
+                        switch (rooms[i]['players'][j]['character']) {
+                            case Characters.LuckyDuke:
+                                _rolls = 4;
+                                break;
+                            case Characters.SidKetchum:
+                                rooms[i]['players'][j]['canUseSkill'] = true;
+                                break;
+                            default:
+                                break;
                         }
                         rooms[i]['players'][j]['rolls'] = _rolls;
                         rooms[i]['players'][j]['bombs'] = 0;
@@ -540,6 +549,27 @@ server.on("message", function (msg, rinfo) {
                 
             }
             break;
+            case Network.UsedSkill:
+                var _room = _json['roomname'];
+                for (var i = 0; i < rooms.length; ++i) {
+                    if (rooms[i]['name'] == _room) {
+                        for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                            if (rooms[i]['players'][j]['port'] == rinfo['port'] && rooms[i]['players'][j]['canUseSkill']) {
+                                rooms[i]['players'][j]['canUseSkill'] = false;
+                            }
+                        }
+                        for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                            sendMessage({
+                                command: Network.UpdatePlayers,
+                                players : JSON.stringify(rooms[i]['players'])
+                            }, {
+                                address: rooms[i]['players'][j]['address'],
+                                port: rooms[i]['players'][j]['port']
+                            });
+                        }
+                    }
+                }
+                break;
         case Network.ChangeDice:
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
