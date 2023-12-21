@@ -764,12 +764,8 @@ server.bind(8888);
 console.log("Server Online!");
 timeout();
 
-/* var keypress = require('keypress');
-
-// make `process.stdin` begin emitting "keypress" events
+var keypress = require('keypress');
 keypress(process.stdin);
-
-// listen for the "keypress" event
 process.stdin.on('keypress', function (ch, key) {
     if (key && key.name == 'u') {
         for (var i = 0; i < rooms.length; ++i) {
@@ -783,11 +779,10 @@ process.stdin.on('keypress', function (ch, key) {
             }
         }
     }
-    //console.log('got "keypress"', key);
     if (key && key.ctrl && key.name == 'c') {
         process.kill(process.pid, 'SIGHUP');
     }
-}); */
+});
 
-//process.stdin.setRawMode(true);
-//process.stdin.resume();
+process.stdin.setRawMode(true);
+process.stdin.resume();
