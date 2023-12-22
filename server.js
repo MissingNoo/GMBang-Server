@@ -258,7 +258,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                          if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.SidKetchum;
+                            //rooms[i]['players'][j]['character'] = Characters.BartCassidy;
                         }
                         /* if (j == 0) {
                             rooms[i]['players'][j]['character'] = Characters.BartCassidy;
