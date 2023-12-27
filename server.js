@@ -171,7 +171,7 @@ server.on("message", function (msg, rinfo) {
             var password = _json['password'];
             var _room = _json['roomname'];
             for (var i = 0; i < rooms.length; ++i) {
-                if ((rooms[i]['name'] == _room || rooms[i]['password'] == password) && rooms[i]['totalplayers'] < 8) {
+                if (password != "" && (rooms[i]['name'] == _room || rooms[i]['password'] == password) && rooms[i]['totalplayers'] < 8) {
                     rooms[i]['players'][rooms[i]['totalplayers']] = {
                         address: rinfo['address'],
                         port: rinfo['port'],
@@ -258,7 +258,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                          if (j == 1) {
-                            //rooms[i]['players'][j]['character'] = Characters.BartCassidy;
+                            rooms[i]['players'][j]['character'] = Characters.RoseDoolan;
                         }
                         /* if (j == 0) {
                             rooms[i]['players'][j]['character'] = Characters.BartCassidy;
@@ -794,7 +794,7 @@ server.bind(8888);
 console.log("Server Online!");
 timeout();
 
-var keypress = require('keypress');
+/* var keypress = require('keypress');
 keypress(process.stdin);
 process.stdin.on('keypress', function (ch, key) {
     if (key && key.name == 'u') {
@@ -815,4 +815,4 @@ process.stdin.on('keypress', function (ch, key) {
 });
 
 process.stdin.setRawMode(true);
-process.stdin.resume();
+process.stdin.resume(); */
