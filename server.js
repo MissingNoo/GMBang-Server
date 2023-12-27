@@ -261,7 +261,7 @@ server.on("message", function (msg, rinfo) {
                             //rooms[i]['players'][j]['character'] = Characters.SlabtheKiller;
                         }
                          if (j == 0) {
-                            //rooms[i]['players'][j]['character'] = Characters.SlabtheKiller;
+                            //rooms[i]['players'][j]['character'] = Characters.PedroRamirez;
                         } 
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
@@ -382,11 +382,22 @@ server.on("message", function (msg, rinfo) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
                             rooms[i]['players'][j]['life'] -= _json['damage'];
+                            rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
+                            console.log("damage to " + String(rooms[i]['players'][j]['username']) + " : " + String(_json['damage']));
+                            if (rooms[i]['players'][j]['life'] <= 0 && rooms[i]['players'][j]['character'] != Characters.VultureSam) {
+                                for (var k = 0; k < rooms[i]['players'].length; ++k) {
+                                    if (rooms[i]['players'][k]['character'] == Characters.VultureSam) {
+                                        rooms[i]['players'][k]['life'] += 2;
+                                        if (rooms[i]['players'][k]['life'] >= rooms[i]['players'][k]['maxlife']) {
+                                            rooms[i]['players'][k]['life'] = rooms[i]['players'][k]['maxlife'];
+                                        }
+                                    }
+                                }
+                            }
                             if(rooms[i]['players'][j]['character'] == Characters.ElGringo){
                                 rooms[i]['players'][_myself]['arrows'] += 1;
                                 rooms[i]['arrows'] -= 1;
                             }
-                            rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
