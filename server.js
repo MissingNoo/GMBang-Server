@@ -436,14 +436,19 @@ server.on("message", function (msg, rinfo) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
-                            if (rooms[i]['players'][j]['life'] > 0 && rooms[i]['players'][j]['life'] < rooms[i]['players'][j]['maxlife']) {
+                            if (rooms[i]['players'][j]['life'] > 0) {
                                 var _healAmount = 1;
                                 if(rooms[i]['players'][j]['character'] == Characters.JesseJones && _json['port'] == rinfo['port'] && rooms[i]['players'][j]['life'] <= 4){
                                     _healAmount = 2;
                                 }
+                                if(rooms[i]['players'][j]['character'] == Characters.SuzyLafayette && _json['port'] == rinfo['port'] && !rooms[i]['players'][j]['canUseSkill']){
+                                    _healAmount = 2;
+                                }
                                 rooms[i]['players'][j]['life'] += _healAmount;
                             }
-                            
+                            if (rooms[i]['players'][j]['life'] > rooms[i]['players'][j]['maxlife']) {
+                                rooms[i]['players'][j]['life'] = rooms[i]['players'][j]['maxlife'];
+                            }                            
                         }
                     }
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
