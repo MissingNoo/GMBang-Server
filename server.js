@@ -184,7 +184,7 @@ server.on("message", function (msg, rinfo) {
                         character: -1,
                         job : -1,
                         lastdamage: -1,
-                        canUseSkill : false
+                        canUseSkill : true
                     };
                     rooms[i]['totalplayers'] += 1;
                     //console.log(String(rooms[i]['players']['socket']));
@@ -258,11 +258,11 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                          if (j == 1) {
-                            rooms[i]['players'][j]['character'] = Characters.RoseDoolan;
+                            //rooms[i]['players'][j]['character'] = Characters.SlabtheKiller;
                         }
-                        /* if (j == 0) {
-                            rooms[i]['players'][j]['character'] = Characters.BartCassidy;
-                        } */
+                         if (j == 0) {
+                            //rooms[i]['players'][j]['character'] = Characters.SlabtheKiller;
+                        } 
                         rooms[i]['players'][j]['life'] = roomchars[_char]['life'];
                         rooms[i]['players'][j]['maxlife'] = roomchars[_char]['life'];
                         roomchars[_char]['skip'] = true;
@@ -312,8 +312,8 @@ server.on("message", function (msg, rinfo) {
             break;
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            //var dices = [Dice.Gatling, Dice.Gatling, Dice.Arrow, Dice.Gatling, Dice.Bomb];
+            //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
+            var dices = [Dice.Beer, Dice.Hit1, Dice.Arrow, Dice.Gatling, Dice.Bomb];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
@@ -381,7 +381,7 @@ server.on("message", function (msg, rinfo) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         //console.log(rooms[i]['players'][j]['port'] + "/" + String(_json['port']));
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
-                            rooms[i]['players'][j]['life'] -= 1;
+                            rooms[i]['players'][j]['life'] -= _json['damage'];
                             if(rooms[i]['players'][j]['character'] == Characters.ElGringo){
                                 rooms[i]['players'][_myself]['arrows'] += 1;
                                 rooms[i]['arrows'] -= 1;
@@ -486,10 +486,8 @@ server.on("message", function (msg, rinfo) {
                             case Characters.LuckyDuke:
                                 _rolls = 4;
                                 break;
-                            case Characters.SidKetchum:
-                                rooms[i]['players'][j]['canUseSkill'] = true;
-                                break;
                             default:
+                                rooms[i]['players'][j]['canUseSkill'] = true;
                                 break;
                         }
                         rooms[i]['players'][j]['rolls'] = _rolls;
