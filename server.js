@@ -312,8 +312,8 @@ server.on("message", function (msg, rinfo) {
             break;
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
-            //var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            var dices = [Dice.Beer, Dice.Hit1, Dice.Arrow, Dice.Gatling, Dice.Bomb];
+            var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
+            //var dices = [Dice.Beer, Dice.Hit1, Dice.Arrow, Dice.Gatling, Dice.Bomb];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
@@ -383,7 +383,7 @@ server.on("message", function (msg, rinfo) {
                         if (_json['port'] == rooms[i]['players'][j]['port']) {
                             rooms[i]['players'][j]['life'] -= _json['damage'];
                             rooms[i]['players'][j]['lastdamage'] = DamageType.Normal;
-                            console.log("damage to " + String(rooms[i]['players'][j]['username']) + " : " + String(_json['damage']));
+                            //console.log("damage to " + String(rooms[i]['players'][j]['username']) + " : " + String(_json['damage']));
                             if (rooms[i]['players'][j]['life'] <= 0 && rooms[i]['players'][j]['character'] != Characters.VultureSam) {
                                 for (var k = 0; k < rooms[i]['players'].length; ++k) {
                                     if (rooms[i]['players'][k]['character'] == Characters.VultureSam) {
