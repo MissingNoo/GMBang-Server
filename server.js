@@ -35,7 +35,8 @@ var Network = Enum(
     "Waiting",
     "ChangeBomb",
     "ChangeDice",
-    "UsedSkill"
+    "UsedSkill",
+    "CurrentDice"
 )
 
 var Dice = Enum(
@@ -666,13 +667,31 @@ server.on("message", function (msg, rinfo) {
             for (var i = 0; i < rooms.length; ++i) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        if (rinfo['port'] != rooms[i]['players'][j]['port']) {
+                        //if (rinfo['port'] != rooms[i]['players'][j]['port']) {
                             sendMessage({
                                 command: Network.Mouse,
                                 x: _json['x'],
                                 y: _json['y'],
                                 sprite: _json['sprite'],
                                 socket: rinfo.port
+                            }, {
+                                address: rooms[i]['players'][j]['address'],
+                                port: rooms[i]['players'][j]['port']
+                            });
+                        //}
+                    }
+                }
+            }
+            break;
+        case Network.CurrentDice:
+            var _room = _json['roomname'];
+            for (var i = 0; i < rooms.length; ++i) {
+                if (rooms[i]['name'] == _room) {
+                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                        if (rinfo['port'] != rooms[i]['players'][j]['port']) {
+                            sendMessage({
+                                command: Network.CurrentDice,
+                                id: _json['id']
                             }, {
                                 address: rooms[i]['players'][j]['address'],
                                 port: rooms[i]['players'][j]['port']
