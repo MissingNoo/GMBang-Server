@@ -126,6 +126,56 @@ function sendMessage(data, rinfo) {
     server.send(response, rinfo.port, rinfo.address);
 }
 
+function next_turn(_json) {
+    var _room = _json['roomname'];
+    for (var i = 0; i < rooms.length; ++i) {
+        if (rooms[i]['name'] == _room) {
+            for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                //if (rooms[i]['players'][j]['port'] == rinfo.port) {
+                var _rolls = 3;
+                switch (rooms[i]['players'][j]['character']) {
+                    case Characters.LuckyDuke:
+                        _rolls = 4;
+                        break;
+                    default:
+                        rooms[i]['players'][j]['canUseSkill'] = true;
+                        break;
+                }
+                rooms[i]['players'][j]['rolls'] = _rolls;
+                rooms[i]['players'][j]['bombs'] = 0;
+                //}
+            }
+            var _turn = rooms[i]['currentTurn'] + 1;
+            if (_turn >= rooms[i]['players'].length) {
+                _turn = 0;
+            }
+            while (rooms[i]['players'][_turn]['life'] <= 0) {
+                _turn+=1;
+                if (_turn >= rooms[i]['players'].length) {
+                    _turn = 0;
+                }
+            }
+            rooms[i]['currentTurn'] = _turn;
+            for (var j = 0; j < rooms[i]['players'].length; ++j) {
+                sendMessage({
+                    command: Network.UpdatePlayers,
+                    players : JSON.stringify(rooms[i]['players']),
+                }, {
+                    address: rooms[i]['players'][j]['address'],
+                    port: rooms[i]['players'][j]['port']
+                });
+                sendMessage({
+                    command: Network.NextTurn,
+                    turn : _turn
+                }, {
+                    address: rooms[i]['players'][j]['address'],
+                    port: rooms[i]['players'][j]['port']
+                });
+            }
+        }
+    }
+}
+
 function sendMessageRoom(message, sendersocket, room) {
     for (var i = 0; i < rooms.length; ++i) {
         if (rooms[i]['name'] == room) {
@@ -259,7 +309,7 @@ server.on("message", function (msg, rinfo) {
                         rooms[i]['players'][j]['job'] = _job;
                         rooms[i]['players'][j]['character'] = _char;
                          if (j == 1) {
-                            //rooms[i]['players'][j]['character'] = Characters.SlabtheKiller;
+                            //rooms[i]['players'][j]['character'] = Characters.PedroRamirez;
                         }
                          if (j == 0) {
                             //rooms[i]['players'][j]['character'] = Characters.PedroRamirez;
@@ -341,6 +391,9 @@ server.on("message", function (msg, rinfo) {
                 if (rooms[i]['name'] == _room) {
                     for (var j = 0; j < rooms[i]['players'].length; ++j) {
                         if (rooms[i]['players'][j]['port'] == rinfo.port) {
+                            if (rooms[i]['players'][j]['life'] <= 0) {
+                                next_turn(_json);
+                            }
                             rooms[i]['players'][j]['rolls'] -= 1;
                             rooms[i]['players'][j]['bombs'] += _bombs;
                             if (rooms[i]['players'][j]['bombs'] >= 3) {
@@ -493,53 +546,7 @@ server.on("message", function (msg, rinfo) {
             }
             break;
         case Network.NextTurn:
-            var _room = _json['roomname'];
-            for (var i = 0; i < rooms.length; ++i) {
-                if (rooms[i]['name'] == _room) {
-                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        //if (rooms[i]['players'][j]['port'] == rinfo.port) {
-                        var _rolls = 3;
-                        switch (rooms[i]['players'][j]['character']) {
-                            case Characters.LuckyDuke:
-                                _rolls = 4;
-                                break;
-                            default:
-                                rooms[i]['players'][j]['canUseSkill'] = true;
-                                break;
-                        }
-                        rooms[i]['players'][j]['rolls'] = _rolls;
-                        rooms[i]['players'][j]['bombs'] = 0;
-                        //}
-                    }
-                    var _turn = rooms[i]['currentTurn'] + 1;
-                    if (_turn >= rooms[i]['players'].length) {
-                        _turn = 0;
-                    }
-                    while (rooms[i]['players'][_turn]['life'] <= 0) {
-                        _turn+=1;
-                        if (_turn >= rooms[i]['players'].length) {
-                            _turn = 0;
-                        }
-                    }
-                    rooms[i]['currentTurn'] = _turn;
-                    for (var j = 0; j < rooms[i]['players'].length; ++j) {
-                        sendMessage({
-                            command: Network.UpdatePlayers,
-                            players : JSON.stringify(rooms[i]['players']),
-                        }, {
-                            address: rooms[i]['players'][j]['address'],
-                            port: rooms[i]['players'][j]['port']
-                        });
-                        sendMessage({
-                            command: Network.NextTurn,
-                            turn : _turn
-                        }, {
-                            address: rooms[i]['players'][j]['address'],
-                            port: rooms[i]['players'][j]['port']
-                        });
-                    }
-                }
-            }
+            next_turn(_json);
             break;
         case Network.ChangeBomb:
             var _room = _json['roomname'];
