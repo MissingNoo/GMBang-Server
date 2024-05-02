@@ -376,7 +376,7 @@ server.on("message", function (msg, rinfo) {
         case Network.Roll:
             var _saved = JSON.parse(_json['saved']);
             var dices = [between(0, 6), between(0, 6), between(0, 6), between(0, 6), between(0, 6)];
-            //var dices = [Dice.Beer, Dice.Hit1, Dice.Arrow, Dice.Gatling, Dice.Bomb];
+            //var dices = [Dice.Arrow, Dice.Arrow, Dice.Arrow, Dice.Gatling, Dice.Gatling];
             for (let i = 0; i < dices.length; i++) {
                 for (let j = 0; j < _saved.length; j++) {
                     if (_saved[j][0] == i) {
